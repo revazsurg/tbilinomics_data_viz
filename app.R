@@ -11,10 +11,16 @@ ui <- fixedPage(
     div.tooltip { position: absolute;text-align: center;width: 150px;                  
     height: 25px;padding: 2px;font-size: 10px;background: #FFFFE0;
     border: 1px;border-radius: 8px;pointer-events: none; }"),
-  titlePanel("Economic Climate Index"),
-  p("Explore and map economic data for 2008-2018 by municipality."),
+  titlePanel("Tbilinomics Data Visualizations"),
   
   tabsetPanel(type = "tabs",
+    
+    tabPanel("Home",
+      h2("Visualize economic data at the municipal level."),
+      p("We provide tools to visualize trends and relationships in Georgian economic data"),
+      p("All of the data on this site was collected from the Georgian National Statistics Office (GeoStat)")
+    ),
+    
     # tabPanel("Map (Raster)",
     #   p(),
     #   fixedRow(
@@ -64,7 +70,7 @@ ui <- fixedPage(
         column(4,
           wellPanel(
             h2("Data by Municipality"),
-            p("Choose a municipality to see data on all indicators for in given year")
+            p("Choose a municipality to see data on all indicators in given year.")
           ),
           wellPanel(
             selectInput("muni", "Select a municipality", c("")),
@@ -161,6 +167,7 @@ server <- function(input, output, session) {
         plot_type == 1,
         tags$div(
           wellPanel(
+            p("Map the spatial distribution of different indicators."),
             selectInput("indicator_svg", "Select a variable to map", choices = choices),
             sliderInput("year_svg", "and a year", min = 2008, max = 2018,
                         value = 2018, step = 1, sep = ""),
@@ -172,6 +179,7 @@ server <- function(input, output, session) {
           plot_type == 2,
           tags$div(
             wellPanel(
+              p("Visualize trends for different municipalities."),
               selectInput("indicator_chart", "Select a variable to plot", choices = choices),
               selectInput("muni_chart", "and some municipalities", choices = munis, multiple = TRUE,
                           selectize = TRUE),
@@ -181,6 +189,7 @@ server <- function(input, output, session) {
           ),
           tags$div(
             wellPanel(
+              p("Plot the relationship between different indicators."),
               selectInput("indicator_scatter_1", "Select one variable", choices = choices),
               selectInput("indicator_scatter_2", "and another", choices = choices, selected = "Indicator 2"),
               actionButton("recalc_scatter", "Scatter Plot"),
@@ -246,7 +255,7 @@ server <- function(input, output, session) {
       selector = "#main_plot",
       where = "afterBegin",
       ui = h3(
-        paste0("Time series of ", indicator, " in ", muni),
+        paste0("Time series of ", indicator),
         class = "text-center",
         id = "title_chart"
       )
