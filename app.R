@@ -198,7 +198,6 @@ server <- function(input, output, session) {
         plot_type == 1,
         tags$div(
           d3Output("map_svg"),
-          d3Output("barchart"),
           id = "main_plot"
         ),
         `if`(
