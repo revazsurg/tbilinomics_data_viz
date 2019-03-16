@@ -88,9 +88,6 @@ d3.json("georgia_munis.geojson").then(json => {
         .style("opacity", 0.8);
 }); 
 
-const min = d3.min(data, d => d.Indicator);
-const max = d3.max(data, d => d.Indicator);
-
 /*
 // Legend with bins
 
@@ -162,7 +159,7 @@ linearGradient.selectAll("stop")
     .attr("stop-color", (d) => d.color);
 
 const legend = svg.append("g")
-    .attr("class", "legend");
+    .attr("id", "legend");
    
 legend.append("rect")
     .attr("x", width / 3)
@@ -172,14 +169,19 @@ legend.append("rect")
     .style("fill", "url(#linear-gradient)")
     .style("opacity", 0.8);
 
-legend.append("text")
-    .attr("x", width / 3 - 50)
+svg.selectAll("text")
+    .remove();
+
+legend.selectAll("text")
+    .data([
+        {type: "min", value: d3.min(data, d => d.Indicator)},
+        {type: "max", value: d3.max(data, d => d.Indicator)}
+    ])
+    .enter()
+    .append("text")
+    .attr("id", d => d.type)
+    .attr("x", d => (d.type == "min") ? (width / 3 - 50) : (width / 3 + 310))
     .attr("y", height - 6)
-    .text(Math.floor(min * 100) / 100)
+    .text(d => Math.floor(d.value * 100) / 100)
     .attr("class", "font-weight-bold");
     
-legend.append("text")
-    .attr("x", width / 3 + 310)
-    .attr("y", height -6)
-    .text(Math.floor(max * 100) / 100)
-    .attr("class", "font-weight-bold");
