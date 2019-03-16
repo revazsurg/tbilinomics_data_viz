@@ -333,7 +333,7 @@ server <- function(input, output, session) {
   output$map_svg <- renderD3({
     r2d3(
       dataSvg(),
-      script = "www/index.js"
+      script = "www/tbilinomics-choropleth-map.js"
     )
   })
   
