@@ -1,3 +1,5 @@
+svg.style("background-color", "#4e5d6c");
+
 const projection = d3.geoMercator()
     .translate([width/2, height/2])
     .scale([5000])
@@ -183,5 +185,6 @@ legend.selectAll("text")
     .attr("x", d => (d.type == "min") ? (width / 3 - 50) : (width / 3 + 310))
     .attr("y", height - 6)
     .text(d => Math.floor(d.value * 100) / 100)
-    .attr("class", "font-weight-bold");
+    .attr("class", "font-weight-bold")
+    .attr("fill", "white");
     

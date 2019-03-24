@@ -4,21 +4,126 @@ library(r2d3)
 library(geojsonio)
 library(DT)
 library(ggplot2)
+library(tbilinomics.htmlwidgets)
+library(shinythemes)
 
 
 ui <- fixedPage(
-  tags$style(type = "text/css", ".irs-grid-pol.small { height: 0px; }
-    div.tooltip { position: absolute;text-align: center;width: 150px;                  
-    height: 25px;padding: 2px;font-size: 10px;background: #FFFFE0;
-    border: 1px;border-radius: 8px;pointer-events: none; }"),
-  titlePanel("Tbilinomics Data Visualizations"),
+  theme = shinytheme("superhero"),
+  
+  tags$head(
+    tags$style(
+      HTML("
+        @import url('https://fonts.googleapis.com/css?family=Montserrat');
+      
+        #main-title {
+          font-family: Montserrat;
+          padding: 40px 0px;
+        }
+        
+        #logo {
+          width: auto;
+          height: 80px;
+          float: left;
+        }
+        
+        h1, h2, h3 {
+          font-family: Montserrat;
+        }
+        
+        #hexbin svg {
+          display: block;
+          margin: auto;
+        }
+        
+        .dashboard-column {
+          height: 650px;
+        }
+        
+        .main-well-map {
+          height: 595px;
+        }
+        
+        .main-well-chart {
+          height: 540px;
+        }
+        
+        .main-well-scatter {
+          height: 560px;
+        }
+        
+        .dataset-well {
+          height: 250px;
+        }
+        
+        .map-controls-well {
+          height: 325px;
+        }
+        
+        .chart-controls-well {
+          height: 270px;
+        }
+        
+        .scatter-controls-well {
+          height: 290px;
+        }
+        
+        
+        
+        table, .table {
+          font-size: 15px;
+        }
+        
+        .irs-grid-pol.small { 
+          height: 0px; 
+        }
+        
+        div.tooltip { 
+          position: absolute;
+          text-align: center;
+          width: 150px;                  
+          height: 25px;
+          padding: 2px;
+          font-size: 10px;
+          background: #FFFFE0;
+          border: 1px;
+          border-radius: 8px;
+          pointer-events: none; 
+        }
+      ")
+    )
+  ),
+  
+  tags$div(
+    img(src = "images/bird.png", id = "logo"),
+    h1("Tbilinomics Data Visualizations"),
+    id = "main-title"  
+  ),
   
   tabsetPanel(type = "tabs",
     
     tabPanel("Home",
-      h2("Visualize economic data at the municipal level."),
-      p("We provide tools to visualize trends and relationships in Georgian economic data"),
-      p("All of the data on this site was collected from the Georgian National Statistics Office (GeoStat)")
+      p(),
+      fixedRow(
+        column(4, 
+          wellPanel(
+            h2("Explore Our Datasets"),
+            p("Choose a dataset and get a dashboard"),
+            selectInput("dataset", "", c("GeoStat Municipal Database"))
+          ),
+          
+          wellPanel(
+            h2("Cutting Edge Visualizations"),
+            p("This site is built on the R language and D3.js.")
+          )
+        ),
+        
+        column(8,
+          wellPanel(
+            rnormHexbinOutput("hexbin")
+          )
+        )
+      )
     ),
     
     # tabPanel("Map (Raster)",
@@ -38,24 +143,29 @@ ui <- fixedPage(
     #   )
     # ),
     
-    tabPanel("Plot",
+    tabPanel("Dashboard",
       p(),
       fixedRow(
         column(4,
-          wellPanel(
-            h2("Explore Our Dataset"),
-            p("As a first step, choose the type of visual representation that you would like to create."),
-            radioButtons("radio_plot_type", label = "", choices = c("Map" = 1, "Chart" = 2, "Scatter" = 3),
-                         selected = 1, inline = TRUE)
-          ),
-          wellPanel(
-            selectInput("indicator_svg", "Select a variable to map", c("")),
-            sliderInput("year_svg", "And a year", min = 2008, max = 2018,
-                        value = 2018, step = 1, sep = ""),
-            actionButton("recalc_svg", "Map It"),
-            id = "well_panel_controls"
-          ),
-          id = "sidebar_column"
+          tags$div(
+            wellPanel(
+              h2("GeoStat Municipalities"),
+              p("First, choose the type of visualization that you would like to see."),
+              radioButtons("radio_plot_type", label = "", 
+                           choices = c("Map" = 1, "Chart" = 2, "Scatter" = 3, "Table" = 4),
+                           selected = 1, inline = TRUE),
+              class = "dataset-well"
+            ),
+            wellPanel(
+              selectInput("indicator_svg", "Select a variable to map", c("")),
+              sliderInput("year_svg", "And a year", min = 2008, max = 2018,
+                          value = 2018, step = 1, sep = ""),
+              actionButton("recalc_svg", "Map It"),
+              id = "well_panel_controls"
+            ),
+            class = "dashboard-column",
+            id = "sidebar_column"
+          )
         ),
         column(8,
           
@@ -64,30 +174,32 @@ ui <- fixedPage(
       )
     ),
                     
-    tabPanel("Municipalities",
-      p(),
-      fixedRow(
-        column(4,
-          wellPanel(
-            h2("Data by Municipality"),
-            p("Choose a municipality to see data on all indicators in given year.")
-          ),
-          wellPanel(
-            selectInput("muni", "Select a municipality", c("")),
-            sliderInput("year_muni", "and a year", min = 2008, max = 2018,
-                        value = 2018, step = 1, sep = ""),
-            actionButton("recalc_muni", "Get Data")
-          )
-        ),
-        column(8,
-          DT::dataTableOutput("table_muni")
-        )
-      )         
-    ),
+    # tabPanel("Municipalities",
+    #   p(),
+    #   fixedRow(
+    #     column(4,
+    #       wellPanel(
+    #         h2("Data by Municipality"),
+    #         p("Choose a municipality to see data on all indicators in given year.")
+    #       ),
+    #       wellPanel(
+    #         selectInput("muni", "Select a municipality", c("")),
+    #         sliderInput("year_muni", "and a year", min = 2008, max = 2018,
+    #                     value = 2018, step = 1, sep = ""),
+    #         actionButton("recalc_muni", "Get Data")
+    #       )
+    #     ),
+    #     column(8,
+    #       DT::dataTableOutput("table_muni")
+    #     )
+    #   )         
+    # ),
                     
-    tabPanel("All Data",
+    tabPanel("Data",
       p(),
-      DT::dataTableOutput("all_data")
+      h2("GeoStat Municipal Dataset", class = "text-center"),
+      p(),
+      DT::dataTableOutput("data")
     )
   ),
   p()
@@ -171,8 +283,9 @@ server <- function(input, output, session) {
             selectInput("indicator_svg", "Select a variable to map", choices = choices),
             sliderInput("year_svg", "and a year", min = 2008, max = 2018,
                         value = 2018, step = 1, sep = ""),
-            actionButton("recalc_svg", "Map It"),
-            id = "well_panel_controls"
+            actionButton("recalc_svg", "Map It", class = "btn-primary"),
+            id = "well_panel_controls",
+            class = "map-controls-well"
           )
         ),
         `if`(
@@ -183,17 +296,33 @@ server <- function(input, output, session) {
               selectInput("indicator_chart", "Select a variable to plot", choices = choices),
               selectInput("muni_chart", "and some municipalities", choices = munis, multiple = TRUE,
                           selectize = TRUE),
-              actionButton("recalc_chart", "Plot It"),
-              id = "well_panel_controls"
+              actionButton("recalc_chart", "Plot It", class = "btn-primary"),
+              id = "well_panel_controls",
+              class = "chart-controls-well"
             )
           ),
-          tags$div(
-            wellPanel(
-              p("Plot the relationship between different indicators."),
-              selectInput("indicator_scatter_1", "Select one variable", choices = choices),
-              selectInput("indicator_scatter_2", "and another", choices = choices, selected = "Indicator 2"),
-              actionButton("recalc_scatter", "Scatter Plot"),
-              id = "well_panel_controls"
+          `if`(
+            plot_type == 3,
+            tags$div(
+              wellPanel(
+                p("Plot the relationship between different indicators."),
+                selectInput("indicator_scatter_1", "Select one variable", choices = choices),
+                selectInput("indicator_scatter_2", "and another", choices = choices, selected = "Indicator 2"),
+                actionButton("recalc_scatter", "Scatter Plot", class = "btn-primary"),
+                id = "well_panel_controls",
+                class = "scatter-controls-well"
+              )
+            ),
+            tags$div(
+              wellPanel(
+                p("See data on all indicators in given year."),
+                selectInput("muni", "Select a municipality", munis),
+                sliderInput("year_muni", "and a year", min = 2008, max = 2018,
+                            value = 2018, step = 1, sep = ""),
+                actionButton("recalc_muni", "Get Data", class = "btn-primary"),
+                id = "well_panel_controls",
+                class = "table-controls-well"
+              )
             )
           )
         )
@@ -206,22 +335,45 @@ server <- function(input, output, session) {
       ui = `if`(
         plot_type == 1,
         tags$div(
-          d3Output("map_svg"),
+          wellPanel(
+            d3Output("map_svg"),
+            class = "main-well-map",
+            id = "main-well"
+          ),
+          class = "dashboard-column",
           id = "main_plot"
         ),
         `if`(
           plot_type == 2,
           tags$div(
-            plotOutput("chart"),
+            wellPanel(
+              plotOutput("chart"),
+              class = "main-well-chart",
+              id = "main-well"
+            ),
+            class = "dashboard-column",
             id = "main_plot"
           ),
-          tags$div(
-            plotOutput("scatter"),
-            id = "main_plot"
+          `if`(
+            plot_type == 3,
+            tags$div(
+              wellPanel(
+                plotOutput("scatter"),
+                class = "main-well-scatter",
+                id = "main-well"
+              ),
+              class = "dashboard-column",
+              id = "main_plot"
+            ),
+            tags$div(
+                p(),
+                DT::dataTableOutput("table_muni"),
+                id = "main_plot",
+                class = "dashboard-column"
+            )
           )
         )
       )
-      
     )
   })
   
@@ -233,7 +385,7 @@ server <- function(input, output, session) {
     )
     
     insertUI(
-      selector = "#main_plot",
+      selector = "#main-well",
       where = "afterBegin",
       ui = h3(
         paste0("Geographical distribution of ", indicator, " by municipality"),
@@ -252,7 +404,7 @@ server <- function(input, output, session) {
     )
     
     insertUI(
-      selector = "#main_plot",
+      selector = "#main-well",
       where = "afterBegin",
       ui = h3(
         paste0("Time series of ", indicator),
@@ -271,7 +423,7 @@ server <- function(input, output, session) {
     )
     
     insertUI(
-      selector = "#main_plot",
+      selector = "#main-well",
       where = "afterBegin",
       ui = h3(
         paste0("Scatterplot of ", indicator1, " vs. ", indicator2),
@@ -281,18 +433,76 @@ server <- function(input, output, session) {
     )
   })
   
+  observeEvent(input$recalc_muni, {
+    muni <- input$muni
+    
+    removeUI(
+      selector = "#title_chart"
+    )
+    
+    insertUI(
+      selector = "#main_plot",
+      where = "afterBegin",
+      ui = h3(
+        paste0("Table of Indicators for ", muni),
+        class = "text-center",
+        id = "title_chart"
+      )
+    )
+  })
+  
+  var1 <- runif(1, 100, 10000)
+  var2 <- runif(1, 100, 10000)
+  covar <- runif(1, -1 * min(var1, var2), min(var1, var2))
+  
+  output$hexbin <- renderRnormHexbin(
+    rnormHexbin(list(var1 = var1, var2 = var2, covar = covar))
+  )
+  
   output$chart <- renderPlot(
     ggplot(dataChart(), aes(x = Year, y = Indicator)) +
       geom_line(aes(color = Municipality), size = 2) +
       scale_x_continuous(breaks = 2008:2018, labels = c("2008", "2009", "2010", "2011", "2012",
                                     "2013", "2014", "2015", "2016", "2017",
-                                    "2018"))
+                                    "2018")) +
+      theme(
+        plot.background = element_rect(
+          fill = "#4e5d6c",
+          color = "#4e5d6c"
+        ),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.title = element_text(
+          color = "white"
+        ),
+        axis.text = element_text(
+          color = "white"
+        ),
+        axis.ticks = element_line(
+          color = "white"
+        )
+      )
   )
   
   output$scatter <- renderPlot(
     ggplot(dataScatter(), aes(x = Indicator1, y = Indicator2)) +
       geom_point() +
-      geom_smooth(method = "lm")
+      geom_smooth(method = "lm") +
+      theme(
+        plot.background = element_rect(
+          fill = "#4e5d6c",
+          color = "#4e5d6c"
+        ),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        axis.title = element_text(
+          color = "white"
+        ),
+        axis.text = element_text(
+          colour = "white"
+        ),
+        axis.ticks = element_line(
+          color = "white"
+        )
+      )
   )
   
   # output$map_raster <- renderLeaflet({
@@ -337,13 +547,12 @@ server <- function(input, output, session) {
     )
   })
   
-  output$table_muni <- DT::renderDataTable({
-    dataMuni()
-  })
+  output$table_muni <- DT::renderDataTable(dataMuni(), style = "bootstrap")
       
-  output$all_data <- DT::renderDataTable(
+  output$data <- DT::renderDataTable(
     raw_data,
-    options = list(scrollX = TRUE)
+    options = list(scrollX = TRUE),
+    style = "bootstrap"
   )
 }
 
