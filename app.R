@@ -456,7 +456,7 @@ server <- function(input, output, session) {
   covar <- runif(1, -1 * min(var1, var2), min(var1, var2))
   
   output$hexbin <- renderRnormHexbin(
-    rnormHexbin(list(var1 = var1, var2 = var2, covar = covar))
+    rnormHexbin(list(var1 = var1, var2 = var2, covar = covar, num = 20000))
   )
   
   output$chart <- renderPlot(
