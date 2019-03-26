@@ -6,6 +6,8 @@ library(DT)
 library(ggplot2)
 library(tbilinomics.htmlwidgets)
 library(shinythemes)
+library(shinycssloaders)
+library(magrittr)
 
 
 ui <- fixedPage(
@@ -45,7 +47,7 @@ ui <- fixedPage(
         }
         
         .main-well-chart {
-          height: 540px;
+          height: 560px;
         }
         
         .main-well-scatter {
@@ -61,7 +63,7 @@ ui <- fixedPage(
         }
         
         .chart-controls-well {
-          height: 270px;
+          height: 290px;
         }
         
         .scatter-controls-well {
@@ -96,7 +98,16 @@ ui <- fixedPage(
   
   tags$div(
     img(src = "images/bird.png", id = "logo"),
-    h1("Tbilinomics Data Visualizations"),
+    tags$h1(
+      tags$span(
+        "Tbilinomics",
+        style = "color: #4b79bd; font-weight: 700"
+      ),
+      tags$span(
+        "Development Visualized",
+        style = "color: white"
+      )
+    ),
     id = "main-title"  
   ),
   
@@ -120,7 +131,7 @@ ui <- fixedPage(
         
         column(8,
           wellPanel(
-            rnormHexbinOutput("hexbin")
+            rnormHexbinOutput("hexbin") %>% withSpinner()
           )
         )
       )
@@ -294,8 +305,8 @@ server <- function(input, output, session) {
             wellPanel(
               p("Visualize trends for different municipalities."),
               selectInput("indicator_chart", "Select a variable to plot", choices = choices),
-              selectInput("muni_chart", "and some municipalities", choices = munis, multiple = TRUE,
-                          selectize = TRUE),
+              selectizeInput("muni_chart", "and some municipalities", choices = munis, multiple = TRUE,
+                          options = list(maxItems = 5)),
               actionButton("recalc_chart", "Plot It", class = "btn-primary"),
               id = "well_panel_controls",
               class = "chart-controls-well"
@@ -456,7 +467,7 @@ server <- function(input, output, session) {
   covar <- runif(1, -1 * min(var1, var2), min(var1, var2))
   
   output$hexbin <- renderRnormHexbin(
-    rnormHexbin(list(var1 = var1, var2 = var2, covar = covar, num = 20000))
+    rnormHexbin(list(var1 = var1, var2 = var2, covar = covar, num = 20000, color = "#df691a"))
   )
   
   output$chart <- renderPlot(
